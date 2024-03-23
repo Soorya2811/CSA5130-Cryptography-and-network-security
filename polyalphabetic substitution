@@ -1,0 +1,44 @@
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+void encryptPolyalphabetic(char message[], char key[]) {
+    int keyLen = strlen(key);
+    int i, j;
+
+    for (i = 0, j = 0; message[i] != '\0'; ++i) {
+        char ch = message[i];
+        if (isalpha(ch)) {
+            int shift = tolower(key[j % keyLen]) - 'a';
+            if (isupper(ch)) {
+                message[i] = 'A' + (ch - 'A' + shift) % 26;
+            } else {
+                message[i] = 'a' + (ch - 'a' + shift) % 26;
+            }
+            ++j;
+        }
+    }
+}
+
+int main() {
+    char message[1000];
+    char key[100];
+
+    printf("Enter the message to encrypt: ");
+    fgets(message, sizeof(message), stdin);
+    printf("Enter the key: ");
+    fgets(key, sizeof(key), stdin);
+
+    // Remove trailing newline characters
+    message[strcspn(message, "\n")] = '\0';
+    key[strcspn(key, "\n")] = '\0';
+
+    encryptPolyalphabetic(message, key);
+
+    printf("Encrypted message: %s\n", message);
+
+    return 0;
+}
+OUTPUT:
+Enter the message to encrypt: hello hi
+Enter the key: 3
+Encrypted message: TQXX[ TU
