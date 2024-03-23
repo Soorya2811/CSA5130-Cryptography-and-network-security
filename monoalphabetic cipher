@@ -1,0 +1,53 @@
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+void createCipherMap(char plainAlphabet[], char cipherAlphabet[]) {
+    int i;
+    char ch = 'A';
+
+    // Generating the cipher alphabet based on the given plain alphabet
+    for (i = 0; i < 26; ++i) {
+        if (isalpha(plainAlphabet[i])) {
+            cipherAlphabet[i] = ch;
+            ch++;
+        }
+    }
+
+    // Null-terminate the cipher alphabet
+    cipherAlphabet[i] = '\0';
+}
+
+void encryptMessage(char message[], char cipherAlphabet[]) {
+    int i;
+
+    // Encrypting the message using the cipher alphabet
+    for (i = 0; message[i] != '\0'; ++i) {
+        if (isalpha(message[i])) {
+            if (isupper(message[i])) {
+                message[i] = cipherAlphabet[message[i] - 'A'];
+            } else {
+                message[i] = tolower(cipherAlphabet[toupper(message[i]) - 'A']);
+            }
+        }
+    }
+
+    printf("Encrypted message: %s\n", message);
+}
+
+int main() {
+    char plainAlphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    char cipherAlphabet[26];
+    char message[100];
+
+    printf("Enter a message to encrypt: ");
+    fgets(message, sizeof(message), stdin);
+
+    createCipherMap(plainAlphabet, cipherAlphabet);
+    encryptMessage(message, cipherAlphabet);
+
+    return 0;
+}
+OUTPUT:
+Enter a message to encrypt: WHERE
+Encrypted message: WHERE
