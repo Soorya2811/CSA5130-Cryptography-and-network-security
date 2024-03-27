@@ -1,0 +1,123 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+#define NUM_LETTERS 26
+
+// Expected frequency of letters in the English language (in percent)
+const float expected_frequency[NUM_LETTERS] = {
+    8.167, 1.492, 2.782, 4.253, 12.702, 2.228, 2.015, 6.094, 6.966, 0.153,
+    0.772, 4.025, 2.406, 6.749, 7.507, 1.929, 0.095, 5.987, 6.327, 9.056,
+    2.758, 0.978, 2.360, 0.150, 1.974, 0.074
+};
+
+// Function to count the frequency of each letter in the ciphertext
+void countFrequency(const char *text, int frequency[]) {
+    int i;
+    for (i = 0; text[i] != '\0'; i++) {
+        char c = text[i];
+        if (isalpha(c)) {
+            frequency[tolower(c) - 'a']++;
+        }
+    }
+}
+
+// Function to calculate the chi-square value for the given frequencies
+float chiSquareValue(int frequency[]) {
+    float chi_square = 0;
+    int total = 0;
+    int i;
+    for (i = 0; i < NUM_LETTERS; i++) {
+        total += frequency[i];
+    }
+    for (i = 0; i < NUM_LETTERS; i++) {
+        float observed = frequency[i];
+        float expected = (expected_frequency[i] / 100) * total;
+        chi_square += ((observed - expected) * (observed - expected)) / expected;
+    }
+    return chi_square;
+}
+
+// Function to perform the letter frequency attack
+void letterFrequencyAttack(const char *ciphertext, int top_plaintexts) {
+    int frequency[NUM_LETTERS] = {0};
+    countFrequency(ciphertext, frequency);
+
+    float chi_square = chiSquareValue(frequency);
+
+    printf("Chi-Square value: %.2f\n", chi_square);
+
+    // Try all possible shifts (assuming it's a Caesar cipher)
+    int shift;
+    for (shift = 0; shift < 26; shift++) {
+        printf("Shift %d: ", shift);
+        for (int i = 0; ciphertext[i] != '\0'; i++) {
+            char c = ciphertext[i];
+            if (isalpha(c)) {
+                char decrypted = 'a' + (tolower(c) - 'a' - shift + 26) % 26;
+                if (isupper(c)) {
+                    decrypted = toupper(decrypted);
+                }
+                printf("%c", decrypted);
+            } else {
+                printf("%c", c);
+            }
+        }
+        printf("\n");
+    }
+}
+
+int main() {
+    char ciphertext[1000];
+    int top_plaintexts;
+
+    printf("Enter the ciphertext: ");
+    fgets(ciphertext, sizeof(ciphertext), stdin);
+    ciphertext[strcspn(ciphertext, "\n")] = '\0'; // Remove trailing newline
+
+    printf("Enter the number of top plaintexts to display: ");
+    scanf("%d", &top_plaintexts);
+    getchar(); // Consume newline character
+
+    printf("\nPerforming letter frequency attack...\n");
+    letterFrequencyAttack(ciphertext, top_plaintexts);
+
+    return 0;
+}
+OUTPUT:
+/tmp/Q1vobKW8rK.o
+Enter the ciphertext: xzytrq
+Enter the number of top plaintexts to display: 3
+
+Performing letter frequency attack...
+Chi-Square value: 518.84
+Shift 0: xzytrq
+Shift 1: wyxsqp
+Shift 2: vxwrpo
+Shift 3: uwvqon
+Shift 4: tvupnm
+Shift 5: sutoml
+Shift 6: rtsnlk
+Shift 7: qsrmkj
+Shift 8: prqlji
+Shift 9: oqpkih
+Shift 10: npojhg
+Shift 11: monigf
+Shift 12: lnmhfe
+Shift 13: kmlged
+Shift 14: jlkfdc
+Shift 15: ikjecb
+Shift 16: hjidba
+Shift 17: gihcaz
+Shift 18: fhgbzy
+Shift 19: egfayx
+Shift 20: dfezxw
+Shift 21: cedywv
+Shift 22: bdcxvu
+Shift 23: acbwut
+Shift 24: zbavts
+Shift 25: yazusr
+
+
+=== Code Execution Successful ===
