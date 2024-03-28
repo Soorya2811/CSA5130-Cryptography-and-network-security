@@ -1,0 +1,116 @@
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+#include <math.h>
+
+#define MATRIX_SIZE 2
+
+// Function to calculate the determinant of a 2x2 matrix
+int determinant(int matrix[MATRIX_SIZE][MATRIX_SIZE]) {
+    return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0];
+}
+
+// Function to find the modular multiplicative inverse of a number
+int modInverse(int a, int m) {
+    a = a % m;
+    for (int x = 1; x < m; x++)
+        if ((a * x) % m == 1)
+            return x;
+    return -1;
+}
+
+// Function to encrypt a message using the Hill cipher
+void encrypt(char plaintext[], int key[MATRIX_SIZE][MATRIX_SIZE], char ciphertext[]) {
+    int len = strlen(plaintext);
+    int encrypted[len];
+
+    // Pad the plaintext if necessary
+    if (len % MATRIX_SIZE != 0) {
+        int pad_len = MATRIX_SIZE - (len % MATRIX_SIZE);
+        for (int i = 0; i < pad_len; i++)
+            plaintext[len + i] = 'x';
+        plaintext[len + pad_len] = '\0';
+        len += pad_len;
+    }
+
+    // Perform encryption
+    for (int i = 0; i < len; i += MATRIX_SIZE) {
+        int vector[MATRIX_SIZE] = {plaintext[i] - 'a', plaintext[i + 1] - 'a'};
+        for (int j = 0; j < MATRIX_SIZE; j++) {
+            encrypted[i + j] = (key[j][0] * vector[0] + key[j][1] * vector[1]) % 26;
+            ciphertext[i + j] = encrypted[i + j] + 'a';
+        }
+    }
+    ciphertext[len] = '\0';
+}
+
+// Function to decrypt a message using the Hill cipher
+void decrypt(char ciphertext[], int key[MATRIX_SIZE][MATRIX_SIZE], char plaintext[]) {
+    int len = strlen(ciphertext);
+    int decrypted[len];
+
+    // Calculate the determinant of the key matrix
+    int det = determinant(key);
+
+    // Find the modular multiplicative inverse of the determinant
+    int detInverse = modInverse(det, 26);
+    if (detInverse == -1) {
+        printf("Error: Determinant has no modular multiplicative inverse.\n");
+        return;
+    }
+
+    // Calculate the adjugate of the key matrix
+    int adj[MATRIX_SIZE][MATRIX_SIZE];
+    adj[0][0] = key[1][1];
+    adj[0][1] = -key[0][1];
+    adj[1][0] = -key[1][0];
+    adj[1][1] = key[0][0];
+
+    // Calculate the inverse of the key matrix
+    int inverse[MATRIX_SIZE][MATRIX_SIZE];
+    for (int i = 0; i < MATRIX_SIZE; i++) {
+        for (int j = 0; j < MATRIX_SIZE; j++) {
+            inverse[i][j] = (adj[i][j] * detInverse) % 26;
+            if (inverse[i][j] < 0)
+                inverse[i][j] += 26;
+        }
+    }
+
+    // Perform decryption
+    for (int i = 0; i < len; i += MATRIX_SIZE) {
+        int vector[MATRIX_SIZE] = {ciphertext[i] - 'a', ciphertext[i + 1] - 'a'};
+        for (int j = 0; j < MATRIX_SIZE; j++) {
+            decrypted[i + j] = (inverse[j][0] * vector[0] + inverse[j][1] * vector[1]) % 26;
+            plaintext[i + j] = decrypted[i + j] + 'a';
+        }
+    }
+    plaintext[len] = '\0';
+}
+
+int main() {
+    char plaintext[] = "meet me at the usual place at ten rather than eight oclock";
+    char ciphertext[strlen(plaintext)];
+    char decrypted[strlen(plaintext)];
+
+    // Key matrix
+    int key[MATRIX_SIZE][MATRIX_SIZE] = {
+        {9, 4},
+        {5, 7}
+    };
+
+    printf("Original message: %s\n", plaintext);
+
+    // Encryption
+    encrypt(plaintext, key, ciphertext);
+    printf("Encrypted ciphertext: %s\n", ciphertext);
+
+    // Decryption
+    decrypt(ciphertext, key, decrypted);
+    printf("Decrypted plaintext: %s\n", decrypted);
+
+    return 0;
+}
+OUTPUT:
+Original message: meet me at the usual place at ten rather than eight oclock
+Encrypted ciphertext: ukixPZQNydRWblV^iwsz\UvdimTTVKftTaxhroajRWljTaqyebVKegzxgc
+Decrypted plaintext: meetTSKTatTZheT[sualTVlaceTaZTteTTratherTZhaTTeighZToclock
