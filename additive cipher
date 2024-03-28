@@ -1,0 +1,73 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#define ALPHABET_SIZE 26
+// Function to calculate the frequency of each letter in the ciphertext
+void calculateFrequency(char ciphertext[], int frequency[]) {
+    for (int i = 0; i < strlen(ciphertext); i++) {
+        if (isalpha(ciphertext[i])) {
+            char c = tolower(ciphertext[i]);
+            frequency[c - 'a']++;
+        }
+    }
+}
+// Function to decrypt the ciphertext using a specific key
+void decrypt(char ciphertext[], int key, char plaintext[]) {
+    for (int i = 0; i < strlen(ciphertext); i++) {
+        if (isalpha(ciphertext[i])) {
+            char c = tolower(ciphertext[i]);
+            char decrypted_char = ((c - 'a' - key) + ALPHABET_SIZE) % ALPHABET_SIZE + 'a';
+            plaintext[i] = isupper(ciphertext[i]) ? toupper(decrypted_char) : decrypted_char;
+        } else {
+            plaintext[i] = ciphertext[i];
+        }
+    }
+    plaintext[strlen(ciphertext)] = '\0';
+}
+
+// Function to compare frequency of letters for qsort
+int compareFrequency(const void *a, const void *b) {
+    return (*(int *)b - *(int *)a);
+}
+
+// Function to perform a letter frequency attack on an additive cipher
+void frequencyAttack(char ciphertext[], int top_results) {
+    int frequency[ALPHABET_SIZE] = {0};
+    char decrypted[strlen(ciphertext) + 1];
+    // Calculate frequency of letters in the ciphertext
+    calculateFrequency(ciphertext, frequency);
+    // Sort the frequency array in descending order
+    qsort(frequency, ALPHABET_SIZE, sizeof(int), compareFrequency);
+    printf("Top %d possible plaintexts:\n", top_results);
+    printf("----------------------------\n");
+    // Try each possible key value and decrypt the ciphertext
+    for (int key = 0; key < ALPHABET_SIZE; key++) {
+        decrypt(ciphertext, key, decrypted);
+        printf("Key = %d: %s\n", key, decrypted);
+        if (key + 1 >= top_results || frequency[key] == 0)
+            break;
+    }
+}
+int main() {
+    char ciphertext[] = "Khoor Zruog!";
+    int top_results = 10; // Number of top possible plaintexts to display
+    printf("Ciphertext: %s\n", ciphertext);
+    printf("Performing letter frequency attack...\n\n");
+    frequencyAttack(ciphertext, top_results);
+    return 0;
+}
+OUTPUT:
+Ciphertext: Khoor Zruog!
+Performing letter frequency attack...
+
+Top 10 possible plaintexts:
+----------------------------
+Key = 0: Khoor Zruog!
+Key = 1: Jgnnq Yqtnf!
+Key = 2: Ifmmp Xpsme!
+Key = 3: Hello World!
+Key = 4: Gdkkn Vnqkc!
+Key = 5: Fcjjm Umpjb!
+Key = 6: Ebiil Tloia!
+Key = 7: Dahhk Sknhz!
