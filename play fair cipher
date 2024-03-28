@@ -1,0 +1,78 @@
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+#define SIZE 5
+
+// Function to decrypt the Playfair ciphertext
+void decrypt(char ciphertext[], char key[]) {
+    // Create a 5x5 matrix for the key
+    char matrix[SIZE][SIZE];
+    int used[26] = {0};
+    int row, col, i, j, k = 0;
+
+    // Initialize matrix with keyword
+    for (i = 0; i < strlen(key); i++) {
+        if (key[i] == 'J')
+            key[i] = 'I'; // Replace 'J' with 'I' (no 'J' in the Playfair matrix)
+        if (!used[key[i] - 'A']) {
+            matrix[k / SIZE][k % SIZE] = key[i];
+            used[key[i] - 'A'] = 1;
+            k++;
+        }
+    }
+
+    // Fill remaining matrix with other letters (excluding 'J')
+    for (i = 0; i < 26; i++) {
+        if (i != ('J' - 'A') && !used[i]) {
+            matrix[k / SIZE][k % SIZE] = 'A' + i;
+            k++;
+        }
+    }
+
+    // Decrypt the ciphertext
+    for (i = 0; i < strlen(ciphertext); i += 2) {
+        char a = ciphertext[i];
+        char b = ciphertext[i + 1];
+        int row1, col1, row2, col2;
+
+        // Find positions of characters in the matrix
+        for (j = 0; j < SIZE; j++) {
+            for (k = 0; k < SIZE; k++) {
+                if (matrix[j][k] == a) {
+                    row1 = j;
+                    col1 = k;
+                }
+                if (matrix[j][k] == b) {
+                    row2 = j;
+                    col2 = k;
+                }
+            }
+        }
+
+        // Characters on the same row
+        if (row1 == row2) {
+            printf("%c%c", matrix[row1][(col1 + SIZE - 1) % SIZE], matrix[row2][(col2 + SIZE - 1) % SIZE]);
+        }
+        // Characters on the same column
+        else if (col1 == col2) {
+            printf("%c%c", matrix[(row1 + SIZE - 1) % SIZE][col1], matrix[(row2 + SIZE - 1) % SIZE][col2]);
+        }
+        // Characters form a rectangle
+        else {
+            printf("%c%c", matrix[row1][col2], matrix[row2][col1]);
+        }
+    }
+}
+
+int main() {
+    char ciphertext[] = "KXJEYUREBEZWEHEWRYTUHEYFSKREHEGOYFIWTTTUOLKSYCAJPOBOTEIZONTXBYBNTGONEYCUZWRGDSONSXBOUYWRHEBAAHYUSEDQ";
+    char key[] = "PATROL";
+
+    decrypt(ciphertext, key);
+    printf("\n");
+
+    return 0;
+}
+OUTPUT:
+HZEOZSODLDYVCKBZYSOQKCVIUIODKCKAVIGYAAOQPEIUXDTBOREAOCKYAUXQDWAGAHAUDZEQYVAIRIAUQYEASZYAKCAWTGZSUDCS
