@@ -1,0 +1,45 @@
+#include <stdio.h>
+#include <string.h>
+
+// Function to decrypt the ciphertext
+void decrypt(char *ciphertext, char *plaintext, char c1, char c2, char c3) {
+    int i;
+    int len = strlen(ciphertext);
+    for (i = 0; i < len; i++) {
+        if (ciphertext[i] == c1)
+            plaintext[i] = 'e';
+        else if (ciphertext[i] == c2)
+            plaintext[i] = 't';
+        else if (ciphertext[i] == c3)
+            plaintext[i] = 'h';
+        else
+            plaintext[i] = ciphertext[i]; // No match, keep the character unchanged
+    }
+    plaintext[i] = '\0';
+}
+
+int main() {
+    char ciphertext[] = "Gsr xlmw xsrwi mr xlmw sj xli asvh.";
+    char plaintext[100];
+
+    // Step 1: Identify the character that most likely corresponds to 'e'.
+    char c1 = 'x';
+
+    // Step 2: Use the knowledge that the most common word in English is "the" to deduce characters for 't' and 'h'.
+    char c2 = 's'; // Corresponds to 't'
+    char c3 = 'i'; // Corresponds to 'h'
+
+    // Decrypt the ciphertext
+    decrypt(ciphertext, plaintext, c1, c2, c3);
+
+    // Output the decrypted plaintext
+    printf("Decrypted message: %s\n", plaintext);
+
+    return 0;
+}
+OUTPUT:
+/tmp/HYFoJGCfZo.o
+Decrypted message: Gtr elmw etrwh mr elmw tj elh atvh.
+
+
+=== Code Execution Successful ===
