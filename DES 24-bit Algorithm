@@ -1,0 +1,105 @@
+#include <stdio.h>
+#include <stdint.h>
+
+// Initial permutation table for the 56-bit key
+const int initial_permutation[56] = {
+    57, 49, 41, 33, 25, 17, 9, 1,
+    58, 50, 42, 34, 26, 18, 10, 2,
+    59, 51, 43, 35, 27, 19, 11, 3,
+    60, 52, 44, 36, 63, 55, 47, 39,
+    31, 23, 15, 7, 62, 54, 46, 38,
+    30, 22, 14, 6, 61, 53, 45, 37,
+    29, 21, 13, 5, 28, 20, 12, 4
+};
+
+// Number of left shifts for each round
+const int left_shifts[16] = {
+    1, 1, 2, 2, 2, 2, 2, 2,
+    1, 2, 2, 2, 2, 2, 2, 1
+};
+
+// Compression permutation table for generating subkeys from 56-bit key
+const int compression_permutation[48] = {
+    14, 17, 11, 24, 1, 5, 3, 28,
+    15, 6, 21, 10, 23, 19, 12, 4,
+    26, 8, 16, 7, 27, 20, 13, 2,
+    41, 52, 31, 37, 47, 55, 30, 40,
+    51, 45, 33, 48, 44, 49, 39, 56,
+    34, 53, 46, 42, 50, 36, 29, 32
+};
+
+// Function to perform circular left shift on a 28-bit value
+uint64_t circularLeftShift(uint64_t value, int shifts) {
+    return (value << shifts) | (value >> (28 - shifts));
+}
+
+// Function to generate 48-bit subkey for each round
+uint64_t generateSubkey(uint64_t key, int round) {
+    // Perform left shifts according to round number
+    int shift = left_shifts[round - 1];
+    uint64_t shifted_key = circularLeftShift(key, shift);
+
+    // Apply compression permutation
+    uint64_t subkey = 0;
+    for (int i = 0; i < 48; i++) {
+        int bit_position = compression_permutation[i] - 1;
+        subkey |= ((shifted_key >> (56 - bit_position)) & 0x01) << (47 - i);
+    }
+
+    return subkey;
+}
+
+int main() {
+    uint64_t initial_key = 0x0000000000000000; // 64-bit initial key (you can provide your own key)
+    uint64_t subkeys[16]; // Array to store 16 subkeys
+
+    // Apply initial permutation on the key
+    uint64_t permuted_key = 0;
+    for (int i = 0; i < 56; i++) {
+        int bit_position = initial_permutation[i] - 1;
+        permuted_key |= ((initial_key >> (64 - bit_position)) & 0x01) << (55 - i);
+    }
+
+    // Split the 56-bit permuted key into two 28-bit halves
+    uint64_t left_half = permuted_key >> 28;
+    uint64_t right_half = permuted_key & 0x0FFFFFFF;
+
+    // Generate 16 subkeys
+    for (int i = 0; i < 16; i++) {
+        // For the first 24 bits, take from the same subset of 28 bits of the initial key
+        // For the second 24 bits, take from a disjoint subset of 28 bits of the initial key
+        uint64_t subkey_left = circularLeftShift(left_half, left_shifts[i]);
+        uint64_t subkey_right = circularLeftShift(right_half, left_shifts[i]);
+        subkeys[i] = (subkey_left << 28) | subkey_right;
+    }
+
+    // Print the generated subkeys
+    printf("Generated Subkeys:\n");
+    for (int i = 0; i < 16; i++) {
+        printf("Subkey %d: 0x%012lX\n", i + 1, subkeys[i]);
+    }
+
+    return 0;
+}
+OUTPUT:
+/tmp/bNXPqsl15V.o
+Generated Subkeys:
+Subkey 1: 0x000000000000
+Subkey 2: 0x000000000000
+Subkey 3: 0x000000000000
+Subkey 4: 0x000000000000
+Subkey 5: 0x000000000000
+Subkey 6: 0x000000000000
+Subkey 7: 0x000000000000
+Subkey 8: 0x000000000000
+Subkey 9: 0x000000000000
+Subkey 10: 0x000000000000
+Subkey 11: 0x000000000000
+Subkey 12: 0x000000000000
+Subkey 13: 0x000000000000
+Subkey 14: 0x000000000000
+Subkey 15: 0x000000000000
+Subkey 16: 0x000000000000
+
+
+=== Code Execution Successful ===
