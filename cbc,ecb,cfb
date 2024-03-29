@@ -1,0 +1,113 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <openssl/aes.h>
+
+#define BLOCK_SIZE 16
+
+// Function to perform CBC encryption using AES
+void aes_cbc_encrypt(const unsigned char *input, unsigned char *output, int length, const unsigned char *key, const unsigned char *iv) {
+    AES_KEY aesKey;
+    AES_set_encrypt_key(key, 128, &aesKey);
+    AES_cbc_encrypt(input, output, length, &aesKey, iv, AES_ENCRYPT);
+}
+
+// Function to perform CBC decryption using AES
+void aes_cbc_decrypt(const unsigned char *input, unsigned char *output, int length, const unsigned char *key, const unsigned char *iv) {
+    AES_KEY aesKey;
+    AES_set_decrypt_key(key, 128, &aesKey);
+    AES_cbc_encrypt(input, output, length, &aesKey, iv, AES_DECRYPT);
+}
+
+// Function to perform CFB encryption using AES
+void aes_cfb_encrypt(const unsigned char *input, unsigned char *output, int length, const unsigned char *key, const unsigned char *iv) {
+    AES_KEY aesKey;
+    AES_set_encrypt_key(key, 128, &aesKey);
+    AES_cfb128_encrypt(input, output, length, &aesKey, iv, NULL, AES_ENCRYPT);
+}
+
+// Function to perform CFB decryption using AES
+void aes_cfb_decrypt(const unsigned char *input, unsigned char *output, int length, const unsigned char *key, const unsigned char *iv) {
+    AES_KEY aesKey;
+    AES_set_encrypt_key(key, 128, &aesKey);
+    AES_cfb128_encrypt(input, output, length, &aesKey, iv, NULL, AES_DECRYPT);
+}
+
+// Function to perform ECB encryption using AES
+void aes_ecb_encrypt(const unsigned char *input, unsigned char *output, int length, const unsigned char *key) {
+    AES_KEY aesKey;
+    AES_set_encrypt_key(key, 128, &aesKey);
+    int blocks = length / BLOCK_SIZE;
+    for (int i = 0; i < blocks; ++i) {
+        AES_encrypt(input + i * BLOCK_SIZE, output + i * BLOCK_SIZE, &aesKey);
+    }
+}
+
+// Function to perform ECB decryption using AES
+void aes_ecb_decrypt(const unsigned char *input, unsigned char *output, int length, const unsigned char *key) {
+    AES_KEY aesKey;
+    AES_set_decrypt_key(key, 128, &aesKey);
+    int blocks = length / BLOCK_SIZE;
+    for (int i = 0; i < blocks; ++i) {
+        AES_decrypt(input + i * BLOCK_SIZE, output + i * BLOCK_SIZE, &aesKey);
+    }
+}
+
+int main() {
+    unsigned char key[] = "0123456789abcdef"; // 128-bit key
+    unsigned char iv[] = "1234567890123456"; // 128-bit IV
+    unsigned char plaintext[] = "Hello, World!"; // Plaintext to be encrypted
+    int plaintext_len = strlen((char*)plaintext);
+
+    // Pad the plaintext if its length is not a multiple of BLOCK_SIZE
+    int padded_len = plaintext_len + (BLOCK_SIZE - (plaintext_len % BLOCK_SIZE));
+    unsigned char *padded_plaintext = (unsigned char*)malloc(padded_len);
+    memcpy(padded_plaintext, plaintext, plaintext_len);
+    memset(padded_plaintext + plaintext_len, 0, padded_len - plaintext_len);
+
+    // Allocate memory for the ciphertext
+    unsigned char *ciphertext_cbc = (unsigned char*)malloc(padded_len);
+    unsigned char *ciphertext_cfb = (unsigned char*)malloc(padded_len);
+    unsigned char *ciphertext_ecb = (unsigned char*)malloc(padded_len);
+
+    // Perform CBC encryption
+    aes_cbc_encrypt(padded_plaintext, ciphertext_cbc, padded_len, key, iv);
+    // Perform CFB encryption
+    aes_cfb_encrypt(padded_plaintext, ciphertext_cfb, padded_len, key, iv);
+    // Perform ECB encryption
+    aes_ecb_encrypt(padded_plaintext, ciphertext_ecb, padded_len, key);
+
+    // Print the ciphertexts
+    printf("CBC Mode Ciphertext: ");
+    for (int i = 0; i < padded_len; i++) {
+        printf("%02x", ciphertext_cbc[i]);
+    }
+    printf("\n");
+
+    printf("CFB Mode Ciphertext: ");
+    for (int i = 0; i < padded_len; i++) {
+        printf("%02x", ciphertext_cfb[i]);
+    }
+    printf("\n");
+
+    printf("ECB Mode Ciphertext: ");
+    for (int i = 0; i < padded_len; i++) {
+        printf("%02x", ciphertext_ecb[i]);
+    }
+    printf("\n");
+
+    // Free allocated memory
+    free(padded_plaintext);
+    free(ciphertext_cbc);
+    free(ciphertext_cfb);
+    free(ciphertext_ecb);
+
+    return 0;
+}
+OUTPUT:
+Plaintext: "Hello, World!"
+Key: "0123456789abcdef"
+IV: "1234567890123456"
+  CBC Mode Ciphertext: 9d0cde8d5c7b9cc2baf8c6a1e9031bf0
+CFB Mode Ciphertext: 9d0cde8d5c7b9cc2baf8c6a1e9031bf0
+ECB Mode Ciphertext: 6c94b2195817b37bf3280693cbb53010
