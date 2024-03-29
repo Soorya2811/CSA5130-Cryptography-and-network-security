@@ -1,0 +1,10 @@
+MD5 -
+
+import hashlib 
+str = "GeeksforGeeks"
+result = hashlib.md5(str.encode())
+print("The hexadecimal equivalent of MD5 is : ") 
+print(result.hexdigest())
+OUTPUT:
+The hexadecimal equivalent of MD5 is : 
+7b24d05b28a25324ff946538095b2d19
