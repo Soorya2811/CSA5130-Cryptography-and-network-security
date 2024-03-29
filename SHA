@@ -1,0 +1,10 @@
+Sha - 
+
+import hashlib 
+str = "GeeksforGeeks"
+result = hashlib.sha256(str.encode())
+print("The hexadecimal equivalent of SHA256 is : ") 
+print(result.hexdigest())
+OUTPUT:
+The hexadecimal equivalent of SHA256 is : 
+a4e92d97cfc095eb64807895ca51a57f613df32b395b6c8ff904b8578eb98e03
